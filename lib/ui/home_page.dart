@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:ideo/data/model/ideo_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:ideo/ui/add_idea_page.dart';
-import 'package:ideo/ui/provider.dart';
+import 'package:ideo/ui/bloc/idea_bloc.dart';
+import 'package:ideo/ui/bloc/idea_event.dart';
+import 'package:ideo/ui/bloc/idea_state.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -14,52 +17,55 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   void initState() {
+    context.read<IdeaBloc>().add(FetchAllIdeaEvent());
     super.initState();
-    // Fetch ideas when the page is first loaded
-    context.read<IdeaProvider>().fetchAllIdea();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home Page'),
-      ),
-      body: Consumer<IdeaProvider>(
-        builder: (context, provider, child) {
-          List<IdeoModel> allIdea = provider.getIdea();
-
-          if (allIdea.isEmpty) {
-            return const Center(
-              child: Text('No Idea Yet!'),
-            );
+      appBar: AppBar(title: Text('Home Page')),
+      body: BlocBuilder<IdeaBloc, IdeaState>(
+        builder: (context, state) {
+          if (state is LoadingIdeaState) {
+            return const Center(child: CircularProgressIndicator());
           }
-
-          return Padding(
-            padding: const EdgeInsets.all(11),
-            child: ListView.builder(
-              itemCount: allIdea.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  leading: CircleAvatar(
-                    radius: 18,
-                    child: Text(allIdea[index].id?.toString() ?? ""),
-                  ),
-                  title: Text(allIdea[index].title),
-                  subtitle: Text(allIdea[index].remark),
-                );
-              },
-            ),
-          );
+          if (state is LoadedIdeaState) {
+            return state.newIdea.isNotEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(11),
+                    child: ListView.builder(
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          leading: CircleAvatar(
+                            child: Text(state.newIdea[index].id.toString()),
+                            radius: 18,
+                          ),
+                          title: Text(state.newIdea[index].title),
+                          subtitle: Text(state.newIdea[index].remark),
+                        );
+                      },
+                      itemCount: state.newIdea.length,
+                    ),
+                  )
+                : const Center(child: Text('No ideas yet!'));
+          }
+          if (state is FailureIdeaState) {
+            return Center(child: Text(state.errorMsg));
+          }
+          return const Center(child: Text('Add your first idea!'));
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => AddIdeaPage()));
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddIdeaPage()),
+          );
         },
-        child: const Icon(Icons.add),
+        child: Icon(Icons.add),
       ),
     );
   }
 }
+
