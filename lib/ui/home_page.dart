@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:ideo/ui/add_idea_page.dart';
 import 'package:ideo/ui/bloc/idea_bloc.dart';
-import 'package:ideo/ui/bloc/idea_event.dart';
 import 'package:ideo/ui/bloc/idea_state.dart';
-import 'package:provider/provider.dart';
+import 'package:ideo/ui/cubit/idea_cubit.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,7 +15,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   void initState() {
-    context.read<IdeaBloc>().add(FetchAllIdeaEvent());
+    context.read<IdeaCubit>().fetchIdea();
     super.initState();
   }
 
@@ -25,7 +23,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Home Page')),
-      body: BlocBuilder<IdeaBloc, IdeaState>(
+      body: BlocBuilder<IdeaCubit, IdeaState>(
         builder: (context, state) {
           if (state is LoadingIdeaState) {
             return const Center(child: CircularProgressIndicator());

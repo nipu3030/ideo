@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ideo/data/model/ideo_model.dart';
-import 'package:provider/provider.dart';
-import 'bloc/idea_bloc.dart';
-import 'bloc/idea_event.dart';
+import 'package:ideo/ui/cubit/idea_cubit.dart';
 
 class AddIdeaPage extends StatelessWidget {
   final titleController = TextEditingController();
@@ -51,11 +50,8 @@ class AddIdeaPage extends StatelessWidget {
                 var remark = remarkController.text.trim();
 
                 if (title.isNotEmpty && remark.isNotEmpty) {
-                  context.read<IdeaBloc>().add(
-                    AddIdeaEvent(
-                      newIdea: IdeoModel(title: title, remark: remark),
-                    ),
-                  );
+                  context.read<IdeaCubit>().addIdea(newIdea: IdeoModel(title: titleController.text,
+                      remark: remarkController.text));
                   Navigator.pop(context);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
